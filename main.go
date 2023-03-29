@@ -1,12 +1,18 @@
 package main
 
 import (
-	"github.com/godbus/dbus/v5"
-	"os"
+	"flag"
 	"os/exec"
+
+	"github.com/godbus/dbus/v5"
+	log "github.com/sirupsen/logrus"
 )
 
 type Server struct{}
+
+var (
+	output = flag.String("output", "eDP-1", "The output display.")
+)
 
 func (s Server) Screenshot(includeCursor bool, flash bool, filename string) (success bool, filenameUsed string, err *dbus.Error) {
 	RunCommand(includeCursor, filename)
@@ -20,11 +26,8 @@ func RunCommand(include_cursor bool, filename string) {
 	} else {
 		cursor = ""
 	}
-	output := "DP-1"
-	if len(os.Getenv("OUTPUT")) > 0 {
-		output = os.Getenv("OUTPUT")
-	}
-	cmd := exec.Command("/usr/bin/grim", "-o", output, cursor, filename)
+	cmd := exec.Command("/usr/bin/grim", "-o", *output, cursor, filename)
+
 	cmd.Run()
 }
 
@@ -39,10 +42,13 @@ func requestName(conn *dbus.Conn, name string) {
 }
 
 func main() {
+	flag.Parse()
 	conn, err := dbus.SessionBus()
 	if err != nil {
 		panic(err)
 	}
+
+	log.Warn(`Starting dbus screen sharing daemon for output: `, *output)
 
 	requestName(conn, "org.gnome.SessionManager")
 	requestName(conn, "org.freedesktop.PowerManagement.Inhibit")
@@ -56,5 +62,6 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
 	select {}
 }

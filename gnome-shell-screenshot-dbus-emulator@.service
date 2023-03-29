@@ -5,8 +5,7 @@ After=graphical-session.target
 
 [Service]
 Type=simple
-Environment=OUTPUT=%i
-ExecStart=/usr/bin/gnome-shell-screenshot-dbus-emulator
+ExecStart=/usr/bin/gnome-shell-screenshot-dbus-emulator --output=%i
 Restart=on-failure
 
 [Install]
